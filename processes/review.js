@@ -7,10 +7,12 @@ var Assignment = require("../models/assignment")
 var ReviewProcess = function (args) {
 	assert(args.application, "Need an application to review")
 	assert(args.db, "Need a database instance")
+	assert(args.billing, "Need a subscription processor")
 	var app = args.application;
 	var mission;
 	var assignment;
 	var db = args.db;
+	var billing = args.billing;
 	var missionControl = new MissionControl({
 		db: args.db
 	});
@@ -58,12 +60,23 @@ var ReviewProcess = function (args) {
 		}, next);
 	}
 
+	this.startSubscription = function (next) {
+		//return a subscription
+		billing.createSubscription({
+			name: app.first + " " + app.last,
+			email: app.email,
+			plan: app.role,
+			source: app.source
+		}, next);
+	}
+
 	this.processApplication = function (next) {
 		async.series({
 			validated: this.ensureAppValid,
 			mission: this.findNextMission,
 			roleAvailable: this.roleIsAvailable,
 			roleCompatible: this.ensureRoleCompatible,
+			subscription: this.startSubscription,
 			assignment: this.approveApplication
 		}, function (err, result) {
 			if (err) {

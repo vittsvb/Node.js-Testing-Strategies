@@ -41,7 +41,7 @@ describe("Mission Planning", function () {
 			});
 		});
 		it.skip("it returns mission 1000", function () {
-			assert.equal(currentMission.id, 1000);
+			assert(currentMission.id);
 			assert(db.getMissionByLaunchDate.called);
 		});
 	});

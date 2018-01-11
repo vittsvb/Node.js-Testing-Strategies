@@ -3,7 +3,8 @@ var ReviewProcess = require("../processes/review");
 var Helpers = require("./helpers");
 var sinon = require("sinon");
 var DB = require("../db");
-var Mission = require("../models/mission")
+var Mission = require("../models/mission");
+var Billing = require("../processes/billing");
 
 describe('The Review Process', function () {
 	describe('Receiving a valid application', function () {
@@ -16,9 +17,16 @@ describe('The Review Process', function () {
 			sinon.stub(db, "saveAssignment").yields(null, {
 				saved: true
 			});
+
+			var billing = new Billing({
+				stripeKey: "xxx"
+			});
+			sinon.stub(billing, "createSubscription").yields(null, Helpers.goodStripeResponse);
+
 			review = new ReviewProcess({
 				application: validApp,
-				db: db
+				db: db,
+				billing: billing
 			});
 			sinon.spy(review, "ensureAppValid");
 			sinon.spy(review, "findNextMission");
@@ -37,6 +45,10 @@ describe('The Review Process', function () {
 
 		it('returns an assignment', function () {
 			assert(decision.assignment);
+		})
+
+		it('returns a subscription', function () {
+			assert(decision.subscription);
 		})
 
 		it('ensures the application is valid', function () {
