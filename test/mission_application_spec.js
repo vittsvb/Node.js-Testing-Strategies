@@ -6,7 +6,7 @@ describe("New user singup", function () {
 	var validApp;
 
 	before(function () {
-		validApp = Helpers.validApplication;
+		validApp = new Helpers.validApplication();
 	})
 
 	describe("Application valid if...", function () {

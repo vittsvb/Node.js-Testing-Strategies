@@ -3,17 +3,19 @@ var sinon = require("sinon");
 var DB = require("../../db");
 var Mission = require("../../models/mission");
 
-exports.validApplication = new MembershipApplication({
-	first: "Test",
-	last: "User",
-	email: "test@test.com",
-	age: 30,
-	height: 66,
-	weight: 180,
-	role: "commander",
-	card: 1,
-	source: "tok_mastercard"
-})
+exports.validApplication = function () {
+	return new MembershipApplication({
+		first: "Test",
+		last: "User",
+		email: "test@test.com",
+		age: 30,
+		height: 66,
+		weight: 180,
+		role: "commander",
+		card: 1,
+		source: "tok_mastercard"
+	})
+}
 
 exports.stubDb = function (args) {
 	args || (args = {});
@@ -24,6 +26,19 @@ exports.stubDb = function (args) {
 	return db
 };
 
+exports.goodStripeArgs = {
+	name: "Test User",
+	email: "test@test.com",
+	plan: "commander",
+	source: "tok_mastercard"
+}
+
+exports.badStripeArgs = {
+	name: "Test User",
+	email: "test@test.com",
+	plan: "commander",
+	source: "tok_chargeDeclined"
+}
 
 exports.goodStripeResponse = function (args) {
 	args || (args = {});
@@ -58,4 +73,23 @@ exports.goodStripeResponse = function (args) {
 		}
 	}
 
+}();
+
+exports.badStripeResponse = function () {
+
+	return {
+		rawType: 'card_error',
+		code: 'card_declined',
+		param: undefined,
+		message: 'Your card was declined.',
+		detail: undefined,
+		raw: {
+			message: 'Your card was declined.',
+			type: 'card_error',
+			code: 'card_declined',
+			decline_code: 'generic_decline'
+		},
+		error: "Your card was declined",
+		type: 'StripeCardError'
+	}
 }();

@@ -5,23 +5,33 @@ var sinon = require("sinon");
 var DB = require("../db");
 var Mission = require("../models/mission");
 var Billing = require("../processes/billing");
+var _ = require("underscore")._;
 
 describe('The Review Process', function () {
+	var db = Helpers.stubDb();
+
+	var billing = new Billing({
+		stripeKey: "xxx"
+	});
+	before(function () {
+		sinon.stub(db, "saveAssignment").yields(null, {
+			saved: true
+		});
+
+		var billingStub = sinon.stub(billing, "createSubscription");
+
+		billingStub.withArgs(Helpers.goodStripeArgs).yields(null, Helpers.goodStripeResponse);
+
+		billingStub.withArgs(Helpers.badStripeArgs).yields("Card was declined", null);
+
+	})
+
 	describe('Receiving a valid application', function () {
 		var decision;
-		var validApp = Helpers.validApplication;
+		var validApp = new Helpers.validApplication();
 		var review;
 
 		before(function (done) {
-			var db = Helpers.stubDb();
-			sinon.stub(db, "saveAssignment").yields(null, {
-				saved: true
-			});
-
-			var billing = new Billing({
-				stripeKey: "xxx"
-			});
-			sinon.stub(billing, "createSubscription").yields(null, Helpers.goodStripeResponse);
 
 			review = new ReviewProcess({
 				application: validApp,
@@ -67,4 +77,30 @@ describe('The Review Process', function () {
 			assert(review.ensureRoleCompatible.called);
 		})
 	})
+
+	describe('Valid application, failed billing', function () {
+		var decision;
+		var badBillingApp = _.clone(Helpers.validApplication());
+		var review;
+
+		badBillingApp.source = "tok_chargeDeclined"
+
+		before(function (done) {
+			review = new ReviewProcess({
+				application: badBillingApp,
+				db: db,
+				billing: billing
+			});
+
+			review.processApplication(function (err, result) {
+				decision = result;
+				done();
+			});
+		})
+
+		it('return a false to success', function () {
+			assert(!decision.success);
+		})
+	})
+
 });

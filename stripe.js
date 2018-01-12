@@ -4,9 +4,9 @@ var billing = new Billing({
 });
 
 billing.createSubscription({
-	email: "test@test.com",
+	email: "test3@test.com",
 	name: 'Test User',
-	source: "tok_mastercard",
+	source: "tok_chargeDeclined",
 	plan: "commander"
 }, function (err, res) {
 	console.log(err);
