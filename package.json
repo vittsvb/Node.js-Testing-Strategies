@@ -14,6 +14,7 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "nock": "^9.1.6",
     "sinon": "^4.1.3"
   }
 }
